@@ -13,7 +13,7 @@ JeffreyWooFinance is an AI-powered financial strategic decision assistant design
 - 🌍 Multi-Market Analysis — supports financial insights across APAC, US, and Europe
 - 🔒 Enterprise-Grade Security — built with reproducible workflows and scalable architecture
 
-## 🚀 Why Choose JeffreyWooFinance?
+## 🚀 Why Choose JeffreyWooFinance
 Most tools just crunch numbers. JeffreyWooFinance goes further — embedding AI into your decision-making process so you can anticipate risks, seize opportunities, and align financial strategies with long-term goals.
 
 ## 📦 Highlights
