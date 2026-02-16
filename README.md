@@ -40,9 +40,9 @@ View this app in AI Studio: https://ai.studio/apps/drive/1rgYmHYlOgFGrP0dBGZlref
 
 ## Sample
 
-<img src="assets/JeffreyWooFinance1.png" alt="JeffreyWooFinance1" width="1200" height="600" />
-<img src="assets/JeffreyWooFinance2.png" alt="JeffreyWooFinance2" width="1200" height="600" />
-<img src="assets/JeffreyWooFinance3.png" alt="JeffreyWooFinance3" width="1200" height="600" />
-<img src="assets/JeffreyWooFinance4.png" alt="JeffreyWooFinance4" width="1200" height="600" />
-<img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="600" />
-<img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="600" />
+<img src="assets/JeffreyWooFinance1.png" alt="JeffreyWooFinance1" width="1200" height="1500" />
+<img src="assets/JeffreyWooFinance2.png" alt="JeffreyWooFinance2" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance3.png" alt="JeffreyWooFinance3" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance4.png" alt="JeffreyWooFinance4" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
