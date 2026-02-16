@@ -22,12 +22,6 @@ Most tools just crunch numbers. JeffreyWooFinance goes further — embedding AI 
 
 Disclaimer: This app provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
 
-# Run and deploy this AI Studio app
-
-This contains everything you need to run this app locally.
-
-View this app in AI Studio: https://ai.studio/apps/drive/1rgYmHYlOgFGrP0dBGZlrefMjgnggC0rA
-
 ## Run Locally
 
 **Prerequisites:**  Node.js
