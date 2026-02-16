@@ -22,7 +22,7 @@ Most tools just crunch numbers. JeffreyWooFinance goes further — embedding AI 
 
 Disclaimer: This app provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
 
-## Run Locally
+## ⚙️ Run Locally
 
 **Prerequisites:**  Node.js
 
@@ -32,7 +32,7 @@ Disclaimer: This app provides AI-driven insights for informational purposes only
 3. Run the app:
    `npm run dev`
 
-## Sample
+## 📋 Sample
 
 <img src="assets/JeffreyWooFinance1.png" alt="JeffreyWooFinance1" width="1200" height="1500" />
 <img src="assets/JeffreyWooFinance2.png" alt="JeffreyWooFinance2" width="1200" height="800" />
