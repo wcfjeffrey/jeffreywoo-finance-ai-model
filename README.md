@@ -17,8 +17,8 @@ JeffreyWooFinance is an AI-powered financial strategic decision assistant design
 Most tools just crunch numbers. JeffreyWooFinance goes further — embedding AI into your decision-making process so you can anticipate risks, seize opportunities, and align financial strategies with long-term goals.
 
 ## 📦 Getting Started
-- Connect your financial datasets by using your uploaded source file
-- Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
+1. Connect your financial datasets by using your uploaded source file
+2. Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
 
 Disclaimer: This app provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
 
