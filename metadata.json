@@ -1,0 +1,7 @@
+{
+  "name": "JeffreyWooFinance Assistant",
+  "description": "A high-performance enterprise financial decision-making platform that uses Gemini 3.0 Pro to analyze financial statements, predict cash flow risks, and provide strategic ROI simulations for executives.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
