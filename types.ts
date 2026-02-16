@@ -4,6 +4,7 @@ export interface FinancialMetric {
   value: string | number;
   change: number;
   trend: 'up' | 'down' | 'neutral';
+  category?: 'efficiency' | 'growth' | 'profitability' | 'liquidity';
 }
 
 export interface CashFlowData {
@@ -15,6 +16,8 @@ export interface CashFlowData {
   revenue?: number;
   expenses?: number;
   ebitda?: number;
+  grossMargin?: number;
+  netMargin?: number;
   prediction?: boolean;
 }
 
@@ -25,6 +28,7 @@ export interface RiskAlert {
   description: string;
   probability: number;
   impact: string;
+  mitigation: string;
 }
 
 export interface StrategicRecommendation {
@@ -43,6 +47,9 @@ export interface ScenarioResult {
   paybackPeriod: number;
   npv: string;
   irr: string;
+  revenueImpact: string;
+  costImpact: string;
+  description?: string;
 }
 
 export interface FinancialGoal {
@@ -59,6 +66,7 @@ export interface BudgetCategory {
   name: string;
   allocated: number;
   spent: number;
+  forecastedNextQ?: number;
 }
 
 export interface InvestmentItem {

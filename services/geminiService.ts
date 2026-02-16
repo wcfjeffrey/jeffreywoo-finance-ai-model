@@ -2,7 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DashboardState } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use the process.env.API_KEY directly as per guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function analyzeFinancialData(
   userInput: string, 
@@ -22,6 +23,7 @@ export async function analyzeFinancialData(
             value: { type: Type.STRING },
             change: { type: Type.NUMBER },
             trend: { type: Type.STRING },
+            category: { type: Type.STRING }
           },
           required: ['label', 'value']
         }
@@ -36,6 +38,20 @@ export async function analyzeFinancialData(
             description: { type: Type.STRING },
             probability: { type: Type.NUMBER },
             impact: { type: Type.STRING },
+            mitigation: { type: Type.STRING }
+          }
+        }
+      },
+      budgets: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            name: { type: Type.STRING },
+            allocated: { type: Type.NUMBER },
+            spent: { type: Type.NUMBER },
+            forecastedNextQ: { type: Type.NUMBER }
           }
         }
       },
@@ -55,26 +71,20 @@ export async function analyzeFinancialData(
       },
       predictionAssumptions: {
         type: Type.ARRAY,
-        items: { type: Type.STRING },
-        description: 'Key assumptions behind the projected cash flow trends.'
-      },
-      analysisSummary: { type: Type.STRING }
+        items: { type: Type.STRING }
+      }
     },
     required: ['metrics', 'risks', 'recommendations', 'predictionAssumptions']
   };
 
   const model = "gemini-3-pro-preview";
-  const systemInstruction = `You are JeffreyWooFinance, a premier AI CFO and Strategic Financial Advisor. 
-  Your goal is to analyze provided financial data (text or documents) and return enterprise-level management recommendations.
-  In this version, also monitor and provide feedback on:
-  1. Budgets: Compare allocated vs spent and suggest reallocations if a category is exceeding its limit (e.g., Marketing).
-  2. Goals: Evaluate progress on debt payoff, asset purchases, and development funds. Suggest capital maneuvers to accelerate goal achievement.
-  3. Investments: Evaluate the portfolio performance and risk profile.
-  Use domain-specific reasoning: ROI, NPV, IRR, WACC, liquidity ratios, and EBITDA optimization.
-  Consider the historical context: ${JSON.stringify(currentState.cashFlowHistory)}.
-  Categorize advice by Strategic Priority (High/Medium/Low) and Time Horizon (Short/Mid/Long).
-  Always calculate an "Impact Score" (0-100) representing potential EBIT improvement.
-  Be concise, professional, and executive-friendly.`;
+  const systemInstruction = `You are JeffreyWooFinance, a premier AI CFO. 
+  Analyze financial data to provide:
+  1. Profitability Metrics: Gross/Net margins and EBITDA.
+  2. Budget Forecasting: Forecast next quarter spend based on current burn rate.
+  3. Risk Mitigation: For every risk identified, provide a concrete mitigation strategy.
+  4. Strategic ROI: Evaluate investments and recommendations with impact scores.
+  Format the output strictly as JSON following the provided schema.`;
 
   const contents: any[] = [{ text: userInput }];
   if (fileBase64) {
@@ -97,10 +107,12 @@ export async function analyzeFinancialData(
       }
     });
 
+    // Use .text property to get the response string.
     const result = JSON.parse(response.text || '{}');
     return {
       metrics: result.metrics || currentState.metrics,
       risks: result.risks?.map((r: any, i: number) => ({ ...r, id: `risk-${i}` })) || currentState.risks,
+      budgets: result.budgets || currentState.budgets,
       recommendations: result.recommendations?.map((r: any, i: number) => ({ ...r, id: `rec-${i}` })) || currentState.recommendations,
       predictionAssumptions: result.predictionAssumptions || currentState.predictionAssumptions,
       lastUpdated: new Date().toLocaleTimeString()
@@ -119,8 +131,7 @@ export async function simulateScenario(
   const response = await ai.models.generateContent({
     model,
     contents: `Simulate this strategic management scenario: "${scenarioDescription}". 
-    Consider the company's historical performance, current debt goals, and budget constraints. 
-    Provide ROI, Payback Period, NPV, and IRR. Return as JSON.`,
+    Evaluate Revenue Impact, Cost Impact, ROI, NPV, and IRR. Return as JSON.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -131,11 +142,14 @@ export async function simulateScenario(
           paybackPeriod: { type: Type.NUMBER },
           npv: { type: Type.STRING },
           irr: { type: Type.STRING },
-          strategicReasoning: { type: Type.STRING }
+          revenueImpact: { type: Type.STRING },
+          costImpact: { type: Type.STRING },
+          description: { type: Type.STRING }
         }
       }
     }
   });
 
+  // Use .text property to get the response string.
   return JSON.parse(response.text || '{}');
 }

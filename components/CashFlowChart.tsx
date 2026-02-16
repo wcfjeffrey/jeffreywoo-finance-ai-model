@@ -3,9 +3,13 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { CashFlowData } from '../types';
 
-export const CashFlowChart: React.FC<{ data: CashFlowData[] }> = ({ data }) => {
+interface ExtendedCashFlowData extends CashFlowData {
+  displayLabel?: string;
+}
+
+export const CashFlowChart: React.FC<{ data: ExtendedCashFlowData[] }> = ({ data }) => {
   return (
-    <div className="h-[350px] w-full">
+    <div className="h-[400px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <defs>
@@ -20,16 +24,11 @@ export const CashFlowChart: React.FC<{ data: CashFlowData[] }> = ({ data }) => {
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis 
-            dataKey="month" 
+            dataKey="displayLabel" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#64748b', fontSize: 11 }}
+            tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
             dy={10}
-            tickFormatter={(value, index) => {
-                const item = data[index];
-                if (!item) return value;
-                return `${value} '${String(item.year).slice(-2)}`;
-            }}
           />
           <YAxis 
             axisLine={false} 
@@ -38,17 +37,17 @@ export const CashFlowChart: React.FC<{ data: CashFlowData[] }> = ({ data }) => {
             tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip 
-            contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
             labelFormatter={(label, payload) => {
                 if (payload && payload.length > 0) {
                     const item = payload[0].payload;
-                    return `${label} ${item.year} ${item.prediction ? '(Forecasted)' : ''}`;
+                    return `${label} ${item.prediction ? '(Forecasted)' : '(Actual)'}`;
                 }
                 return label;
             }}
             formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
           />
-          <Legend verticalAlign="top" height={36} iconType="circle" />
+          <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
           <Area 
             type="monotone" 
             dataKey="inflow" 

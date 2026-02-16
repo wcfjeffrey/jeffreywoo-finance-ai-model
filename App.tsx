@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   TrendingUp, 
@@ -26,24 +25,30 @@ import {
   BookOpen,
   ArrowRight,
   X,
-  PlusCircle
+  PlusCircle,
+  Activity,
+  BarChart,
+  Layers,
+  TrendingDown
 } from 'lucide-react';
 import { INITIAL_DATA } from './constants';
-import { DashboardState, ScenarioResult, StrategicRecommendation, FinancialGoal, BudgetCategory, InvestmentItem } from './types';
+import { DashboardState, ScenarioResult, StrategicRecommendation, FinancialGoal, BudgetCategory, InvestmentItem, CashFlowData, FinancialMetric } from './types';
 import { MetricCard } from './components/MetricCard';
 import { CashFlowChart } from './components/CashFlowChart';
 import { HistoryTable } from './components/HistoryTable';
 import { analyzeFinancialData, simulateScenario } from './services/geminiService';
-import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
+import { ResponsiveContainer, Tooltip as ReTooltip, BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line } from 'recharts';
+
+type Granularity = 'month' | 'quarter' | 'year';
 
 const App: React.FC = () => {
   const [state, setState] = useState<DashboardState>(INITIAL_DATA);
   const [query, setQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'scenarios' | 'risks' | 'history' | 'budgets' | 'investments' | 'resources'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'scenarios' | 'risks' | 'history' | 'budgets' | 'investments'>('overview');
   const [scenarioInput, setScenarioInput] = useState('');
   const [fileData, setFileData] = useState<{data: string, mimeType: string} | null>(null);
-  const [chartViewMonths, setChartViewMonths] = useState<number>(6);
+  const [granularity, setGranularity] = useState<Granularity>('month');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Modal States
@@ -54,11 +59,128 @@ const App: React.FC = () => {
   const [newGoal, setNewGoal] = useState<Partial<FinancialGoal>>({ category: 'Asset', targetAmount: 0, currentAmount: 0 });
   const [newBudget, setNewBudget] = useState<Partial<BudgetCategory>>({ allocated: 0, spent: 0 });
 
-  const filteredCashFlowData = useMemo(() => {
-    return state.cashFlowHistory.slice(-chartViewMonths);
-  }, [state.cashFlowHistory, chartViewMonths]);
+  const getQuarter = (month: string) => {
+    const quarters: Record<string, string> = {
+      'Jan': 'Q1', 'Feb': 'Q1', 'Mar': 'Q1',
+      'Apr': 'Q2', 'May': 'Q2', 'Jun': 'Q2',
+      'Jul': 'Q3', 'Aug': 'Q3', 'Sep': 'Q3',
+      'Oct': 'Q4', 'Nov': 'Q4', 'Dec': 'Q4'
+    };
+    return quarters[month] || 'Q1';
+  };
 
-  const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const aggregatedData = useMemo(() => {
+    const sourceData = state.cashFlowHistory;
+    if (granularity === 'month') {
+      return sourceData.map(d => ({
+        ...d,
+        displayLabel: `${d.month} ${d.year}`
+      }));
+    }
+
+    const groups: Record<string, CashFlowData[]> = {};
+    sourceData.forEach(d => {
+      const key = granularity === 'quarter' 
+        ? `${d.year}-${getQuarter(d.month)}` 
+        : `${d.year}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(d);
+    });
+
+    return Object.entries(groups).map(([key, items]) => {
+      const isPrediction = items.some(i => i.prediction);
+      const parts = key.split('-');
+      const yearStr = parts[0];
+      const qStr = parts[1];
+      
+      const totalRevenue = items.reduce((acc, i) => acc + (i.revenue || 0), 0);
+      const totalEbitda = items.reduce((acc, i) => acc + (i.ebitda || 0), 0);
+      
+      return {
+        month: granularity === 'quarter' ? qStr : 'FY',
+        displayLabel: granularity === 'quarter' ? `${qStr} ${yearStr}` : yearStr,
+        year: parseInt(yearStr),
+        inflow: items.reduce((acc, i) => acc + i.inflow, 0),
+        outflow: items.reduce((acc, i) => acc + i.outflow, 0),
+        balance: items[items.length - 1].balance,
+        revenue: totalRevenue,
+        ebitda: totalEbitda,
+        grossMargin: Math.round(items.reduce((acc, i) => acc + (i.grossMargin || 0), 0) / items.length),
+        netMargin: Math.round(items.reduce((acc, i) => acc + (i.netMargin || 0), 0) / items.length),
+        prediction: isPrediction
+      } as CashFlowData & { displayLabel: string };
+    });
+  }, [state.cashFlowHistory, granularity]);
+
+  // Dynamic Metrics based on Granularity
+  const displayMetrics = useMemo(() => {
+    const lastPeriod = aggregatedData[aggregatedData.length - 1];
+    if (!lastPeriod) return state.metrics;
+
+    const formatCurrency = (val: number) => {
+      const absVal = Math.abs(val);
+      if (absVal >= 1000000) return `${val < 0 ? '-' : ''}$${(absVal / 1000000).toFixed(1)}M`;
+      if (absVal >= 1000) return `${val < 0 ? '-' : ''}$${(absVal / 1000).toFixed(0)}k`;
+      return `${val < 0 ? '-' : ''}$${absVal.toLocaleString()}`;
+    };
+
+    const periodLabel = lastPeriod.displayLabel;
+    const ebitdaMargin = lastPeriod.revenue ? Math.round((lastPeriod.ebitda || 0) / lastPeriod.revenue * 100) : 0;
+    
+    const prevPeriod = aggregatedData.length > 1 ? aggregatedData[aggregatedData.length - 2] : null;
+    const calculateChange = (curr: number, prev: number) => {
+      if (!prev || prev === 0) return 0;
+      return Math.round(((curr - prev) / Math.abs(prev)) * 100);
+    };
+
+    const revenueChange = prevPeriod ? calculateChange(lastPeriod.revenue || 0, prevPeriod.revenue || 0) : 0;
+    const cashFlowValue = lastPeriod.inflow - lastPeriod.outflow;
+    const prevCashFlowValue = prevPeriod ? (prevPeriod.inflow - prevPeriod.outflow) : 0;
+    const cashFlowChange = calculateChange(cashFlowValue, prevCashFlowValue);
+
+    const dynamicMetrics: FinancialMetric[] = [
+      { 
+        label: `Total Revenue (${periodLabel})`, 
+        value: formatCurrency(lastPeriod.revenue || 0), 
+        change: revenueChange, 
+        trend: revenueChange >= 0 ? 'up' : 'down', 
+        category: 'growth' 
+      },
+      { 
+        label: `EBITDA Margin (${periodLabel})`, 
+        value: `${ebitdaMargin}%`, 
+        change: prevPeriod && prevPeriod.revenue ? ebitdaMargin - Math.round((prevPeriod.ebitda || 0) / prevPeriod.revenue * 100) : 0, 
+        trend: ebitdaMargin >= (prevPeriod && prevPeriod.revenue ? (prevPeriod.ebitda || 0) / prevPeriod.revenue * 100 : 0) ? 'up' : 'down', 
+        category: 'profitability' 
+      },
+      { 
+        label: `Net Profit Margin (${periodLabel})`, 
+        value: `${lastPeriod.netMargin}%`, 
+        change: prevPeriod ? (lastPeriod.netMargin || 0) - (prevPeriod.netMargin || 0) : 0, 
+        trend: (lastPeriod.netMargin || 0) >= (prevPeriod?.netMargin || 0) ? 'up' : 'down', 
+        category: 'profitability' 
+      },
+      { 
+        label: `Cash on Hand (${periodLabel})`, 
+        value: formatCurrency(lastPeriod.balance), 
+        change: cashFlowChange, 
+        trend: cashFlowValue >= 0 ? 'up' : 'down', 
+        category: 'liquidity' 
+      },
+    ];
+
+    return dynamicMetrics;
+  }, [aggregatedData, state.metrics]);
+
+  const scaledBudgets = useMemo(() => {
+    const scale = granularity === 'month' ? 1 : granularity === 'quarter' ? 3 : 12;
+    return state.budgets.map(b => ({
+      ...b,
+      allocated: b.allocated * scale,
+      spent: b.spent * scale,
+      forecastedNextQ: b.forecastedNextQ ? b.forecastedNextQ * scale : undefined
+    }));
+  }, [state.budgets, granularity]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,636 +198,477 @@ const App: React.FC = () => {
     if (!query && !fileData) return;
     setIsProcessing(true);
     try {
-      const update = await analyzeFinancialData(query || "Analyze current financials and historical trends.", state, fileData || undefined);
+      const update = await analyzeFinancialData(query || "Analyze current financials.", state, fileData || undefined);
       setState(prev => ({ ...prev, ...update }));
       setQuery('');
       setFileData(null);
     } catch (err) {
-      alert("Analysis failed. Please try again.");
+      console.error(err);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleAddGoal = () => {
-    if (!newGoal.title || !newGoal.targetAmount || !newGoal.deadline) return;
-    const goal: FinancialGoal = {
-      id: `g-${Date.now()}`,
-      title: newGoal.title!,
-      targetAmount: Number(newGoal.targetAmount),
-      currentAmount: Number(newGoal.currentAmount || 0),
-      deadline: newGoal.deadline!,
-      category: newGoal.category as any
-    };
-    setState(prev => ({ ...prev, goals: [...prev.goals, goal] }));
-    setShowGoalModal(false);
-    setNewGoal({ category: 'Asset', targetAmount: 0, currentAmount: 0 });
-  };
-
-  const handleAddBudget = () => {
-    if (!newBudget.name || !newBudget.allocated) return;
-    const budget: BudgetCategory = {
-      id: `b-${Date.now()}`,
-      name: newBudget.name!,
-      allocated: Number(newBudget.allocated),
-      spent: Number(newBudget.spent || 0)
-    };
-    setState(prev => ({ ...prev, budgets: [...prev.budgets, budget] }));
-    setShowBudgetModal(false);
-    setNewBudget({ allocated: 0, spent: 0 });
-  };
-
-  const handleSimulate = async () => {
+  const runScenario = async () => {
     if (!scenarioInput) return;
     setIsProcessing(true);
     try {
       const result = await simulateScenario(scenarioInput, state);
       setState(prev => ({
         ...prev,
-        scenarios: [result, ...prev.scenarios].slice(0, 5)
+        scenarios: [result, ...prev.scenarios]
       }));
       setScenarioInput('');
-      setActiveTab('scenarios');
     } catch (err) {
-      alert("Simulation failed.");
+      console.error(err);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ['Month', 'Year', 'Revenue', 'Expenses', 'EBITDA', 'Inflow', 'Outflow', 'Net Balance', 'Type'];
-    const rows = state.cashFlowHistory.map(d => [
-      d.month,
-      d.year,
-      d.revenue || 0,
-      d.expenses || 0,
-      d.ebitda || 0,
-      d.inflow,
-      d.outflow,
-      d.balance,
-      d.prediction ? 'Forecast' : 'Actual'
-    ]);
-
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers, ...rows].map(e => e.join(",")).join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `JeffreyWooFinance_Export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col sticky top-0 h-screen shadow-2xl z-30">
-        <div className="p-6 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <TrendingUp size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-lg leading-tight tracking-tight text-white">JeffreyWooFinance</h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Strategic Finance</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <p className="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Analysis</p>
-          <button 
-            onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <BarChart3 size={18} />
-            <span className="font-medium text-sm">Dashboard</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <History size={18} />
-            <span className="font-medium text-sm">Trends & Ledger</span>
-          </button>
-
-          <p className="px-4 py-2 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Management</p>
-          <button 
-            onClick={() => setActiveTab('budgets')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'budgets' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <Wallet size={18} />
-            <span className="font-medium text-sm">Budget & Goals</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('investments')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'investments' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <Briefcase size={18} />
-            <span className="font-medium text-sm">Portfolio</span>
-          </button>
-          
-          <p className="px-4 py-2 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Strategy</p>
-          <button 
-            onClick={() => setActiveTab('risks')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'risks' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <ShieldAlert size={18} />
-            <span className="font-medium text-sm">Risk Matrix</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('scenarios')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'scenarios' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <Zap size={18} />
-            <span className="font-medium text-sm">Scenario Lab</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('resources')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'resources' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-          >
-            <BookOpen size={18} />
-            <span className="font-medium text-sm">Resources</span>
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <div className="bg-slate-800 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">CFO Engine</p>
-            <div className="flex items-center gap-2 text-sm text-emerald-400">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium">Gemini Pro 3.0</span>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative">
-        {/* Header */}
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-20 px-8 py-4 flex items-center justify-between backdrop-blur-md bg-white/90">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Executive Strategic Overview</h2>
-            <p className="text-xs text-slate-500">Intelligent Asset Management System • {state.lastUpdated}</p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">J</div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-800">JeffreyWoo<span className="text-blue-600">Finance</span></h1>
+            <span className="ml-2 text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded border border-slate-200">AI CFO</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-              <Search size={20} />
-            </button>
-            <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+            <div className="hidden md:flex items-center bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+              <Activity size={14} className="text-emerald-500 mr-2" />
+              <span className="text-xs font-medium text-slate-600">Last updated: {state.lastUpdated}</span>
+            </div>
+            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
               <Settings size={20} />
             </button>
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 border border-slate-200">
-              JW
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              type="text"
+              placeholder="Ask your AI CFO about cash flow, budgets, or risk analysis..."
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && runAnalysis()}
+            />
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".pdf,.csv,.txt" />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm font-medium ${fileData ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+            >
+              <Upload size={18} />
+              {fileData ? 'Document Loaded' : 'Upload Data'}
+            </button>
+            <button 
+              disabled={isProcessing || (!query && !fileData)}
+              onClick={runAnalysis}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            >
+              {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
+              {isProcessing ? 'Analyzing...' : 'Generate Insights'}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <nav className="flex items-center p-1 bg-white border border-slate-200 rounded-xl overflow-x-auto">
+            {[
+              { id: 'overview', icon: <BarChart3 size={16} />, label: 'Overview' },
+              { id: 'history', icon: <History size={16} />, label: 'Cash History' },
+              { id: 'risks', icon: <ShieldAlert size={16} />, label: 'Risk Center' },
+              { id: 'budgets', icon: <Wallet size={16} />, label: 'Budgets' },
+              { id: 'investments', icon: <Briefcase size={16} />, label: 'Investments' },
+              { id: 'scenarios', icon: <Layers size={16} />, label: 'Scenarios' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  activeTab === tab.id 
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-xl self-start">
+            {(['month', 'quarter', 'year'] as Granularity[]).map((g) => (
+              <button
+                key={g}
+                onClick={() => setGranularity(g)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                  granularity === g 
+                    ? 'bg-slate-100 text-slate-800' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {displayMetrics.map((metric, i) => (
+                <MetricCard key={i} metric={metric} />
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                {/* Cash Flow Chart */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-900">Cash Flow Narrative</h2>
+                      <p className="text-sm text-slate-500">Aggregated inflow vs outflow analysis</p>
+                    </div>
+                  </div>
+                  <CashFlowChart data={aggregatedData} />
+                </div>
+
+                {/* Revenue & EBITDA Chart */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">Revenue & EBITDA Growth</h2>
+                    <p className="text-sm text-slate-500">Aggregated {granularity} operational performance</p>
+                  </div>
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ReBarChart data={aggregatedData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="displayLabel" 
+                          tick={{fontSize: 11, fontWeight: 500, fill: '#64748b'}} 
+                          axisLine={false} 
+                          tickLine={false} 
+                          dy={10} 
+                          interval={0}
+                        />
+                        <YAxis tick={{fontSize: 11, fill: '#94a3b8'}} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} axisLine={false} tickLine={false} />
+                        <ReTooltip 
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                          formatter={(v: number) => [`$${v.toLocaleString()}`, '']}
+                        />
+                        <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{fontSize: 12, paddingBottom: 20}} />
+                        <Bar dataKey="revenue" name="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={30} />
+                        <Bar dataKey="ebitda" name="EBITDA" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
+                      </ReBarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Margins Analysis Chart */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">Efficiency & Margin Analysis (%)</h2>
+                    <p className="text-sm text-slate-500">Profitability trajectories across selected periods</p>
+                  </div>
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={aggregatedData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="displayLabel" 
+                          tick={{fontSize: 11, fontWeight: 500, fill: '#64748b'}} 
+                          axisLine={false} 
+                          tickLine={false} 
+                          dy={10} 
+                          interval={0}
+                        />
+                        <YAxis tick={{fontSize: 11, fill: '#94a3b8'}} unit="%" axisLine={false} tickLine={false} />
+                        <ReTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                        <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{fontSize: 12, paddingBottom: 20}} />
+                        <Line type="monotone" dataKey="grossMargin" name="Gross Margin" stroke="#2563eb" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} />
+                        <Line type="monotone" dataKey="netMargin" name="Net Margin" stroke="#10b981" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl shadow-slate-200">
+                  <h3 className="flex items-center gap-2 text-md font-bold mb-4">
+                    <Zap size={18} className="text-blue-400" />
+                    Strategic Recommendations
+                  </h3>
+                  <div className="space-y-4">
+                    {state.recommendations.map((rec, i) => (
+                      <div key={i} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors group">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
+                            rec.priority === 'high' ? 'bg-rose-500/20 text-rose-400' : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {rec.priority} PRIORITY
+                          </span>
+                          <span className="text-xs text-slate-400 font-mono">Impact: {rec.impactScore}/100</span>
+                        </div>
+                        <h4 className="text-sm font-bold mb-1 group-hover:text-blue-400 transition-colors">{rec.title}</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">{rec.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <h3 className="flex items-center gap-2 text-md font-bold mb-4 text-slate-900">
+                    <History size={18} className="text-slate-400" />
+                    Prediction Assumptions
+                  </h3>
+                  <ul className="space-y-3">
+                    {state.predictionAssumptions.map((assumption, i) => (
+                      <li key={i} className="flex gap-3 text-xs text-slate-600 leading-relaxed">
+                        <span className="shrink-0 w-5 h-5 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center font-bold text-[10px] border border-slate-100">{i+1}</span>
+                        {assumption}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
-        </header>
+        )}
 
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-          {/* Quick Action Bar (Global) */}
-          <section className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-             <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
-                    <MessageSquare size={18} className="text-blue-400" />
-                    JeffreyWooFinance AI Core
-                  </h3>
-                  <p className="text-slate-400 text-xs mb-4">Ingest financial statements or query complex simulations across all modules.</p>
-                  <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-                    <input 
-                      type="text" 
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Ask AI: 'Compare my budget spend to Q1' or 'Evaluate asset risk'..."
-                      className="bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 text-sm flex-1 px-4"
-                      onKeyDown={(e) => e.key === 'Enter' && runAnalysis()}
-                    />
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`p-2 rounded-lg transition-colors ${fileData ? 'bg-emerald-500 text-white' : 'hover:bg-white/10 text-slate-400'}`}
-                      title="Upload Financial Document"
-                    >
-                      <Upload size={18} />
-                    </button>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      onChange={handleFileUpload} 
-                      accept=".pdf,.doc,.docx,.xlsx,.txt,image/*"
-                    />
-                    <button 
-                      onClick={runAnalysis}
-                      disabled={isProcessing || (!query && !fileData)}
-                      className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20"
-                    >
-                      {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <ChevronRight size={16} />}
-                      Analyze
-                    </button>
+        {activeTab === 'history' && (
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Financial Ledger</h2>
+                <p className="text-slate-500">Detailed breakdown of performance scaled to {granularity}</p>
+              </div>
+              <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                <Download size={16} />
+                Export CSV
+              </button>
+            </div>
+            <HistoryTable data={aggregatedData} />
+          </div>
+        )}
+
+        {activeTab === 'risks' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+            {state.risks.map((risk, i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col group hover:border-rose-200 transition-all">
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-2 rounded-lg ${risk.severity === 'high' ? 'bg-rose-50 text-rose-600' : risk.severity === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Probability</p>
+                    <p className="text-lg font-bold text-slate-900">{risk.probability}%</p>
                   </div>
                 </div>
-             </div>
-          </section>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{risk.title}</h3>
+                <p className="text-sm text-slate-500 mb-6 flex-1">{risk.description}</p>
+                <div className="mt-auto space-y-4 pt-6 border-t border-slate-100">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Impact</p>
+                    <p className="text-xs font-semibold text-rose-600">{risk.impact}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Mitigation Strategy</p>
+                    <p className="text-xs text-slate-600 italic leading-relaxed">"{risk.mitigation}"</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-          {activeTab === 'overview' && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {state.metrics.map((m, i) => (
-                  <MetricCard key={i} metric={m} />
+        {activeTab === 'budgets' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Budget Allocation</h2>
+                <p className="text-slate-500">Departmental spend analysis scaled for {granularity}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-md font-bold mb-6 text-slate-900">Current Utilization</h3>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ReBarChart data={scaledBudgets} layout="vertical" margin={{ left: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600 }} />
+                      <ReTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                      <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: 12, paddingBottom: 10 }} />
+                      <Bar dataKey="spent" name="Spent" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={20} />
+                      <Bar dataKey="allocated" name="Allocated" fill="#e2e8f0" radius={[0, 4, 4, 0]} barSize={20} />
+                    </ReBarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {scaledBudgets.map((budget) => {
+                  const percent = Math.round((budget.spent / budget.allocated) * 100);
+                  const isOver = percent > 100;
+                  return (
+                    <div key={budget.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-bold text-slate-800">{budget.name}</h4>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isOver ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                          {percent}% UTILIZED
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3">
+                        <div className={`h-full transition-all duration-1000 ${isOver ? 'bg-rose-500' : 'bg-blue-600'}`} style={{ width: `${Math.min(percent, 100)}%` }} />
+                      </div>
+                      <div className="flex justify-between items-end">
+                        <div className="text-xs text-slate-400">
+                          <p>Spent: <span className="font-mono font-bold text-slate-900">${budget.spent.toLocaleString()}</span></p>
+                          <p>Budget: <span className="font-mono text-slate-600">${budget.allocated.toLocaleString()}</span></p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'investments' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Portfolio Performance</h2>
+                <p className="text-slate-500">Strategic asset allocation and yield optimization</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                {state.investments.map((inv) => (
+                  <div key={inv.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className={`p-3 rounded-xl ${inv.riskProfile === 'Aggressive' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                        {inv.riskProfile === 'Aggressive' ? <TrendingUp size={24} /> : <ShieldAlert size={24} />}
+                      </div>
+                      <span className={`text-[10px] font-bold px-3 py-1 rounded-lg ${inv.riskProfile === 'Aggressive' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{inv.riskProfile} Profile</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">{inv.name}</h3>
+                    <div className="grid grid-cols-2 gap-4 mt-4 py-4 border-t border-slate-50">
+                      <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Allocation</p><p className="text-2xl font-bold text-slate-900">{inv.allocation}%</p></div>
+                      <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Return YTD</p><p className="text-2xl font-bold text-emerald-600">+{inv.returnYTD}%</p></div>
+                    </div>
+                    <div className="mt-auto pt-4 flex justify-between items-center text-sm">
+                      <span className="text-slate-500">Net Value</span>
+                      <span className="font-bold text-slate-900 font-mono">${inv.value.toLocaleString()}</span>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                        <Calendar size={18} className="text-blue-600" />
-                        Cash Flow Performance & Forecast
-                      </h4>
-                      <p className="text-xs text-slate-500">Historical trends vs AI-driven projections</p>
-                    </div>
-                  </div>
-                  <CashFlowChart data={filteredCashFlowData} />
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <h4 className="font-bold text-slate-900 text-lg mb-6 flex items-center gap-2">
-                    <Target size={20} className="text-blue-600" />
-                    Executive Advisory
-                  </h4>
-                  <div className="space-y-4 flex-1">
-                    {state.recommendations.map(rec => (
-                      <div key={rec.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 group hover:border-blue-200 hover:bg-blue-50/50 transition-all">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${rec.priority === 'high' ? 'bg-rose-100 text-rose-600' : 'bg-blue-100 text-blue-600'}`}>
-                            {rec.category}
-                          </span>
-                        </div>
-                        <h5 className="font-bold text-slate-900 text-sm mb-1">{rec.title}</h5>
-                        <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-3">{rec.content}</p>
+              
+              <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl shadow-slate-200 h-fit">
+                <h3 className="flex items-center gap-2 text-md font-bold mb-6">
+                  <Target size={18} className="text-blue-400" />
+                  Investment Advisory
+                </h3>
+                <div className="space-y-4">
+                  {state.recommendations.filter(r => r.category === 'Investment').map((rec, i) => (
+                    <div key={i} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors group">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${rec.priority === 'high' ? 'bg-rose-500/20 text-rose-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                          {rec.priority}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">{rec.impactScore}</span>
                       </div>
-                    ))}
-                  </div>
+                      <h4 className="text-sm font-bold mb-1 group-hover:text-blue-400 transition-colors">{rec.title}</h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">{rec.content}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </>
-          )}
-
-          {activeTab === 'budgets' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">Budgeting & Strategic Goals</h3>
-                  <p className="text-sm text-slate-500 mt-1">Configure allocation and track enterprise-wide milestones.</p>
-                </div>
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => setShowGoalModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
-                  >
-                    <PlusCircle size={16} /> Add Goal
-                  </button>
-                  <button 
-                    onClick={() => setShowBudgetModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
-                  >
-                    <PlusCircle size={16} /> Add Budget
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Budget vs Actual */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                    <PieChart size={20} className="text-blue-600" />
-                    Budget Utilization
-                  </h3>
-                  <div className="space-y-6">
-                    {state.budgets.length === 0 && <p className="text-sm text-slate-400 italic">No budget categories defined.</p>}
-                    {state.budgets.map(cat => (
-                      <div key={cat.id} className="space-y-2 group">
-                        <div className="flex justify-between items-end">
-                          <span className="text-sm font-semibold text-slate-700">{cat.name}</span>
-                          <span className="text-xs font-bold text-slate-400 mono">
-                            ${(cat.spent / 1000).toFixed(0)}k / ${(cat.allocated / 1000).toFixed(0)}k
-                          </span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-1000 ${cat.spent > cat.allocated ? 'bg-rose-500' : 'bg-blue-600'}`}
-                            style={{ width: `${Math.min((cat.spent / (cat.allocated || 1)) * 100, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Financial Goals */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                    <Target size={20} className="text-emerald-600" />
-                    Strategic Goals
-                  </h3>
-                  <div className="space-y-6">
-                    {state.goals.length === 0 && <p className="text-sm text-slate-400 italic">No strategic goals set.</p>}
-                    {state.goals.map(goal => (
-                      <div key={goal.id} className="p-4 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:border-emerald-200 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <span className="text-[9px] font-bold uppercase text-emerald-600 tracking-widest">{goal.category}</span>
-                            <h4 className="font-bold text-slate-900 text-sm">{goal.title}</h4>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs font-bold text-slate-900 mono">
-                              {((goal.currentAmount / (goal.targetAmount || 1)) * 100).toFixed(0)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-full h-1.5 bg-slate-200 rounded-full mb-3 overflow-hidden">
-                          <div 
-                            className="h-full bg-emerald-500 transition-all duration-1000"
-                            style={{ width: `${(goal.currentAmount / (goal.targetAmount || 1)) * 100}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                          <span>Target: ${(goal.targetAmount / 1000000).toFixed(1)}M</span>
-                          <span>Deadline: {goal.deadline}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Modals */}
-              {showGoalModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                  <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95">
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                      <h4 className="text-lg font-bold text-slate-900">Add Strategic Goal</h4>
-                      <button onClick={() => setShowGoalModal(false)} className="p-1 text-slate-400 hover:text-slate-600"><X size={20}/></button>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Goal Title</label>
-                        <input 
-                          type="text" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                          placeholder="e.g. Asset Acquisition"
-                          value={newGoal.title || ''}
-                          onChange={e => setNewGoal(p => ({ ...p, title: e.target.value }))}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Target Amount ($)</label>
-                          <input 
-                            type="number" 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                            placeholder="1000000"
-                            value={newGoal.targetAmount || ''}
-                            onChange={e => setNewGoal(p => ({ ...p, targetAmount: Number(e.target.value) }))}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Deadline</label>
-                          <input 
-                            type="date" 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                            value={newGoal.deadline || ''}
-                            onChange={e => setNewGoal(p => ({ ...p, deadline: e.target.value }))}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Category</label>
-                        <select 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                          value={newGoal.category}
-                          onChange={e => setNewGoal(p => ({ ...p, category: e.target.value as any }))}
-                        >
-                          <option value="Asset">Fixed Asset Purchase</option>
-                          <option value="Debt">Debt Repayment</option>
-                          <option value="Development">Business Development</option>
-                        </select>
-                      </div>
-                      <button 
-                        onClick={handleAddGoal}
-                        className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all mt-4"
-                      >
-                        Create Goal
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {showBudgetModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                  <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95">
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                      <h4 className="text-lg font-bold text-slate-900">Define Budget Category</h4>
-                      <button onClick={() => setShowBudgetModal(false)} className="p-1 text-slate-400 hover:text-slate-600"><X size={20}/></button>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Category Name</label>
-                        <input 
-                          type="text" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                          placeholder="e.g. Sales & Marketing"
-                          value={newBudget.name || ''}
-                          onChange={e => setNewBudget(p => ({ ...p, name: e.target.value }))}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Allocated Budget ($)</label>
-                        <input 
-                          type="number" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                          placeholder="50000"
-                          value={newBudget.allocated || ''}
-                          onChange={e => setNewBudget(p => ({ ...p, allocated: Number(e.target.value) }))}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Initial Spend ($)</label>
-                        <input 
-                          type="number" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                          placeholder="0"
-                          value={newBudget.spent || ''}
-                          onChange={e => setNewBudget(p => ({ ...p, spent: Number(e.target.value) }))}
-                        />
-                      </div>
-                      <button 
-                        onClick={handleAddBudget}
-                        className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all mt-4"
-                      >
-                        Set Budget
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'investments' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
-                    <h3 className="text-lg font-bold text-slate-900 mb-6 self-start flex items-center gap-2">
-                      <PieChart size={20} className="text-blue-600" />
-                      Asset Allocation
-                    </h3>
-                    <div className="w-full h-[280px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RePieChart>
-                          <Pie
-                            data={state.investments}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="allocation"
-                            nameKey="name"
-                          >
-                            {state.investments.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <ReTooltip />
-                        </RePieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                  <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                      <Briefcase size={20} className="text-blue-600" />
-                      Current Portfolio Performance
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead className="border-b border-slate-100">
-                          <tr>
-                            <th className="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Asset Name</th>
-                            <th className="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Value</th>
-                            <th className="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">YTD Return</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {state.investments.map(inv => (
-                            <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="py-4 text-sm font-bold text-slate-900">{inv.name}</td>
-                              <td className="py-4 text-sm font-bold text-slate-900 text-right mono">
-                                ${(inv.value / 1000).toLocaleString()}k
-                              </td>
-                              <td className={`py-4 text-sm font-bold text-right mono ${inv.returnYTD >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {inv.returnYTD >= 0 ? '+' : ''}{inv.returnYTD}%
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-               </div>
-            </div>
-          )}
-
-          {activeTab === 'resources' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
-               {[
-                 { title: 'Tax Optimization Strategies', desc: 'Enterprise-grade guides for global operations.', icon: <FileText size={24} />, color: 'bg-blue-500' },
-                 { title: 'Liquidity Management Tools', desc: 'Calculators and templates for CFOs.', icon: <Wallet size={24} />, color: 'bg-emerald-500' },
-                 { title: 'JeffreyWooFinance AI Financial Library', desc: 'Exclusive insights powered by LLM research.', icon: <BookOpen size={24} />, color: 'bg-indigo-600' },
-               ].map((res, i) => (
-                 <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-400 transition-all group cursor-pointer">
-                    <div className={`w-12 h-12 ${res.color} text-white rounded-xl flex items-center justify-center mb-6 shadow-lg`}>
-                      {res.icon}
-                    </div>
-                    <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">{res.title}</h4>
-                    <p className="text-sm text-slate-500 mb-6 leading-relaxed">{res.desc}</p>
-                    <div className="flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
-                      Access Resource <ArrowRight size={14} />
-                    </div>
-                 </div>
-               ))}
-            </div>
-          )}
-
-          {activeTab === 'history' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">Historical Financial Ledger</h3>
-                  <p className="text-sm text-slate-500 mt-1">Audit-ready monthly performance data with EBITDA tracking</p>
+        {activeTab === 'scenarios' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Scenario Simulation Lab</h2>
+              <p className="text-slate-500 mb-8">Model complex capital decisions to evaluate ROI and Payback thresholds</p>
+              
+              <div className="flex flex-col md:flex-row gap-4 mb-10">
+                <div className="flex-1 relative">
+                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    type="text"
+                    placeholder="Describe a capital strategy... e.g., 'Expand R&D by $2M to accelerate AI chips'"
+                    className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                    value={scenarioInput}
+                    onChange={(e) => setScenarioInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && runScenario()}
+                  />
                 </div>
                 <button 
-                  onClick={exportToCSV}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-all"
+                  disabled={!scenarioInput || isProcessing}
+                  onClick={runScenario}
+                  className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                 >
-                  <Download size={16} /> Export CSV
+                  {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                  Run Analysis
                 </button>
               </div>
-              <HistoryTable data={state.cashFlowHistory} />
-            </div>
-          )}
 
-          {activeTab === 'risks' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h3 className="text-2xl font-bold text-slate-900">Active Risk Indicators</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {state.risks.map(risk => (
-                  <div key={risk.id} className={`p-6 rounded-2xl border shadow-sm transition-all hover:scale-[1.01] ${risk.severity === 'high' ? 'bg-white border-rose-200 shadow-rose-100' : 'bg-white border-amber-200 shadow-amber-100'}`}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${risk.severity === 'high' ? 'bg-rose-500 text-white shadow-lg' : 'bg-amber-500 text-white shadow-lg'}`}>
-                        <ShieldAlert size={20} />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {state.scenarios.map((scenario, i) => (
+                    <div key={i} className="p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:bg-white hover:shadow-lg transition-all">
+                      <h3 className="text-lg font-bold text-slate-900 mb-4">{scenario.scenarioName}</h3>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="p-4 bg-white rounded-xl border border-slate-100"><p className="text-[10px] text-slate-400 uppercase tracking-widest">ROI</p><p className="text-2xl font-bold text-blue-600">{scenario.roi}%</p></div>
+                        <div className="p-4 bg-white rounded-xl border border-slate-100"><p className="text-[10px] text-slate-400 uppercase tracking-widest">Payback</p><p className="text-2xl font-bold text-slate-900">{scenario.paybackPeriod}mo</p></div>
                       </div>
-                      <div className="text-right font-bold text-xl mono text-slate-700">{risk.probability}%</div>
+                      <div className="pt-4 border-t border-slate-200 space-y-2">
+                        <div className="flex justify-between text-xs"><span className="text-slate-500">NPV</span><span className="font-bold text-slate-900">{scenario.npv}</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-slate-500">IRR</span><span className="font-bold text-slate-900">{scenario.irr}</span></div>
+                      </div>
                     </div>
-                    <h4 className="text-base font-bold text-slate-900 mb-2">{risk.title}</h4>
-                    <p className="text-slate-500 text-xs mb-4 leading-relaxed">{risk.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  ))}
+                </div>
 
-          {activeTab === 'scenarios' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-                <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">Scenario Simulation Lab</h3>
-                  <p className="text-slate-500 text-sm mb-8">Deploy capital strategies to virtual environments and assess long-term viability.</p>
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <input 
-                      type="text" 
-                      value={scenarioInput}
-                      onChange={(e) => setScenarioInput(e.target.value)}
-                      placeholder="e.g. 'Invest $2M in warehouse automation'..."
-                      className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
-                    />
-                    <button 
-                      onClick={handleSimulate}
-                      disabled={isProcessing || !scenarioInput}
-                      className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-sm hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-3 transition-all shadow-xl"
-                    >
-                      {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                      Simulate
-                    </button>
+                <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl shadow-slate-200 h-fit">
+                  <h3 className="flex items-center gap-2 text-md font-bold mb-6">
+                    <ShieldAlert size={18} className="text-emerald-400" />
+                    Capital Advisory
+                  </h3>
+                  <div className="space-y-4">
+                    {state.recommendations.filter(r => r.category === 'Capital Allocation').map((rec, i) => (
+                      <div key={i} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors group">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${rec.priority === 'high' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                            {rec.priority}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold mb-1 group-hover:text-emerald-400 transition-colors">{rec.title}</h4>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">{rec.content}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );
