@@ -18,7 +18,7 @@ Most tools just crunch numbers. JeffreyWooFinance goes further — embedding AI 
 
 ## 📦 Getting Started
 - Connect your financial datasets by using your uploaded source file
-- Run JeffreyWooFinance to generate insights, simulations, and strategic recommendations tailored to your business
+- Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
 
 Disclaimer: This app provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
 
