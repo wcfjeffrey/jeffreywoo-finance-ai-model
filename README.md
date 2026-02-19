@@ -21,7 +21,7 @@ Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding
 2. Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
 
 ## ⚖️ Disclaimer
-This app provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
+**JeffreyWooFinance** provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
 
 ## ⚙️ Run Locally
 
