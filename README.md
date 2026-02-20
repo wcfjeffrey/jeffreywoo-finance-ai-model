@@ -16,6 +16,11 @@ Not your typical financial strategic decision assistant app!
 ## 🚀 Why Choose JeffreyWooFinance
 Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding AI into your decision-making process so you can anticipate risks, seize opportunities, and align financial strategies with long-term goals.
 
+## 🤖 Tech Stack
+• **Language** — TypeScript  
+• **Framework** — React (with Vite as the build tool)  
+• **UI** — Standard React components
+
 ## 📦 Getting Started
 1. Connect your financial datasets by uploading your source file
 2. Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
