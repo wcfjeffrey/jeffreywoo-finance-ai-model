@@ -19,7 +19,7 @@ Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding
 ## 🤖 Tech Stack
 - **Language** — TypeScript, HTML  
 - **Framework** — React (with Vite as the build tool)  
-- **UI** — Standard React components, styled via JSX/TSX
+- **UI** — Standard React components, styled via TSX
 - **Runtime** — Node.js
 
 ## 💡Finance Transformation Impact
