@@ -24,13 +24,13 @@ Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding
 
 ## 💰 Financial Theories Applied
 This app leverages accounting and finance principles to automate analysis of corporate performance, investment decisions, and compliance reporting. It transforms raw financial data into actionable insights for managers, auditors, and investors:
-- Financial Statement Analysis — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (liquidity, profitability, leverage) to benchmark company performance.  
-- DuPont Framework — Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value.  
-- Discounted Cash Flow (DCF) & Net Present Value (NPV) — Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app’s forecasting module.  
-- Capital Asset Pricing Model (CAPM) — Applied to estimate cost of equity and Weighted Average Cost of Capital (WACC), supporting financing decisions within the app’s risk-return analysis.  
-- Variance & Sensitivity Analysis — AI-driven stochastic simulations test resilience of financial outcomes under different market conditions, aligning with actuarial-style stress testing.  
-- Cash Flow Statement Interpretation — Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability.  
-- Consolidation & Group Structures — The app models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting.
+- **Financial Statement Analysis** — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (liquidity, profitability, leverage) to benchmark company performance.  
+- **DuPont Framework** — Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value.  
+- **Discounted Cash Flow (DCF) & Net Present Value (NPV)** — Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app’s forecasting module.  
+- **Capital Asset Pricing Model (CAPM)** — Applied to estimate cost of equity and Weighted Average Cost of Capital (WACC), supporting financing decisions within the app’s risk-return analysis.  
+- **Variance & Sensitivity Analysis** — AI-driven stochastic simulations test resilience of financial outcomes under different market conditions, aligning with actuarial-style stress testing.  
+- **Cash Flow Statement Interpretation** — Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability.  
+- **Consolidation & Group Structures** — The app models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting.
 
 ## 💡Finance Transformation Impact
 This project showcases how technology can reshape financial management by:  
