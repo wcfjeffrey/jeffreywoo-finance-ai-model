@@ -23,28 +23,29 @@ Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding
 - **Runtime** — Node.js
 
 ## 💰 Financial Theories Applied
-• 	Financial Statement Analysis — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (liquidity, profitability, leverage) to benchmark company performance.  
-• 	DuPont Framework — Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value.  
-• 	Discounted Cash Flow (DCF) & Net Present Value (NPV) — Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app’s forecasting module.  
-• 	Capital Asset Pricing Model (CAPM) — Applied to estimate cost of equity and Weighted Average Cost of Capital (WACC), supporting financing decisions within the app’s risk-return analysis.  
-• 	Variance & Sensitivity Analysis — AI-driven stochastic simulations test resilience of financial outcomes under different market conditions, aligning with actuarial-style stress testing.  
-• 	Cash Flow Statement Interpretation — Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability.  
-• 	Consolidation & Group Structures — The app models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting.
+This app leverages accounting and finance principles to automate analysis of corporate performance, investment decisions, and compliance reporting. It transforms raw financial data into actionable insights for managers, auditors, and investors:
+- Financial Statement Analysis — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (liquidity, profitability, leverage) to benchmark company performance.  
+- DuPont Framework — Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value.  
+- Discounted Cash Flow (DCF) & Net Present Value (NPV) — Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app’s forecasting module.  
+- Capital Asset Pricing Model (CAPM) — Applied to estimate cost of equity and Weighted Average Cost of Capital (WACC), supporting financing decisions within the app’s risk-return analysis.  
+- Variance & Sensitivity Analysis — AI-driven stochastic simulations test resilience of financial outcomes under different market conditions, aligning with actuarial-style stress testing.  
+- Cash Flow Statement Interpretation — Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability.  
+- Consolidation & Group Structures — The app models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting.
 
 ## 💡Finance Transformation Impact
 This project showcases how technology can reshape financial management by:  
-• Digitizing strategic finance workflows with predictive modeling & real‑time insights.  
-• Enhancing executive decision‑making through scenario simulations & ROI analysis.  
-• Optimizing liquidity & risk management with automated forecasting tools.  
-• Driving enterprise transformation by aligning financial strategies with long‑term organizational goals.  
-• Promoting responsible innovation with secure handling of sensitive financial data.
+- Digitizing strategic finance workflows with predictive modeling & real‑time insights.  
+- Enhancing executive decision‑making through scenario simulations & ROI analysis.  
+- Optimizing liquidity & risk management with automated forecasting tools.  
+- Driving enterprise transformation by aligning financial strategies with long‑term organizational goals.  
+- Promoting responsible innovation with secure handling of sensitive financial data.
 
 ## ⭐ Finance Skills Strengthened
-• Full‑stack architecture for finance applications.  
-• Secure handling of financial data & environment variables.  
-• AI model integration into real‑world financial analysis workflows.  
-• Parsing & transforming ERP & structured datasets for insights.  
-• Interactive dashboards & state management in React (TypeScript + Vite).
+- Full‑stack architecture for finance applications.  
+- Secure handling of financial data & environment variables.  
+- AI model integration into real‑world financial analysis workflows.  
+- Parsing & transforming ERP & structured datasets for insights.  
+- Interactive dashboards & state management in React (TypeScript + Vite).
 
 ## 📦 Getting Started
 1. Connect your financial datasets by uploading your source file
