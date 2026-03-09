@@ -17,9 +17,10 @@ Not your typical financial strategic decision assistant app!
 Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding AI into your decision-making process so you can anticipate risks, seize opportunities, and align financial strategies with long-term goals.
 
 ## 🤖 Tech Stack
-- **Language** — TypeScript  
+- **Language** — TypeScript, HTML  
 - **Framework** — React (with Vite as the build tool)  
 - **UI** — Standard React components
+- **Runtime** — Node.js
 
 ## 💡Finance Transformation Impact
 This project showcases how technology can reshape financial management by:  
