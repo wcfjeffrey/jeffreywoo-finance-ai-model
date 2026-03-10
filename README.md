@@ -7,11 +7,11 @@ Not your typical financial strategic decision assistant app!
 **JeffreyWooFinance** is an AI-powered financial strategic decision assistant designed to help businesses and professionals make smarter, faster, and more confident financial choices.
 
 ## ✨ What It Does
-- 📊 Real-Time Financial Intelligence — analyze complex financial data and market trends (by month/quarter/year) using predictive models
-- 🧠 AI-Powered Strategic Guidance — deliver actionable recommendations for investment, budgeting, and risk management
-- 🔍 Scenario Simulation Engine — explore “what-if” models to evaluate outcomes before making decisions
-- 🌍 Multi-Market Analysis — supports financial insights across APAC, US, and Europe
-- 🔒 Enterprise-Grade Security — built with reproducible workflows and scalable architecture
+- 📊 **Real-Time Financial Intelligence** — analyze complex financial data and market trends (by month/quarter/year) using predictive models
+- 🧠 **AI-Powered Strategic Guidance** — deliver actionable recommendations for investment, budgeting, and risk management
+- 🔍 **Scenario Simulation Engine** — explore “what-if” models to evaluate outcomes before making decisions
+- 🌍 **Multi-Market Analysis** — supports financial insights across APAC, US, and Europe
+- 🔒 **Enterprise-Grade Security** — built with reproducible workflows and scalable architecture
 
 ## 🚀 Why Choose JeffreyWooFinance
 Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding AI into your decision-making process so you can anticipate risks, seize opportunities, and align financial strategies with long-term goals.
