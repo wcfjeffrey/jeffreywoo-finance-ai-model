@@ -35,7 +35,7 @@ This app leverages accounting and finance principles to automate analysis of cor
 ## 💡Finance Transformation Impact
 This project showcases how technology can reshape financial management by:  
 - Digitizing strategic finance workflows with predictive modeling & real‑time insights.  
-- Enhancing executive decision‑making through scenario simulations & ROI analysis.  
+- Enhancing executive decision‑making through scenario simulations & ROI/payback analysis.  
 - Optimizing liquidity & risk management with automated forecasting tools.  
 - Driving enterprise transformation by aligning financial strategies with long‑term organizational goals.  
 - Promoting responsible innovation with secure handling of sensitive financial data.
