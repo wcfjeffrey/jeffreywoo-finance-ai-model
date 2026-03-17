@@ -24,7 +24,7 @@ Most tools just crunch numbers. **JeffreyWooFinance** goes further — embedding
 
 ## 💰 Financial Theories Applied
 This app leverages accounting and finance principles to automate analysis of corporate performance, investment decisions, and compliance reporting. It transforms raw financial data into actionable insights for managers, auditors, and investors:
-- **Financial Statement Analysis** — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (liquidity, profitability, leverage) to benchmark company performance.  
+- **Financial Statement Analysis** — The app parses balance sheets, income statements, and cash flow statements, applying ratio analysis (e.g. EBITA margin, net profit margin) to benchmark company performance.  
 - **DuPont Framework** — Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value.  
 - **Discounted Cash Flow (DCF) & Net Present Value (NPV)** — Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app’s forecasting module.  
 - **Capital Asset Pricing Model (CAPM)** — Applied to estimate cost of equity and Weighted Average Cost of Capital (WACC), supporting financing decisions within the app’s risk-return analysis.  
