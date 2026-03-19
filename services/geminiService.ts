@@ -2,7 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DashboardState } from "../types";
 
-// Always use the process.env.API_KEY directly as per guidelines.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function analyzeFinancialData(
