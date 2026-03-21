@@ -2,6 +2,8 @@
   <img src="assets/JeffreyWooFinance.png" alt="JeffreyWooFinanceBanner" width="1200" height="600" />
 </div>
 
+## 📊 Overview
+
 Not your typical financial strategic decision assistant app!
 
 **JeffreyWooFinance** is an AI-powered financial strategic decision assistant designed to help businesses and professionals make smarter, faster, and more confident financial choices.
