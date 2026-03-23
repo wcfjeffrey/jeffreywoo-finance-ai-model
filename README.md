@@ -80,3 +80,10 @@ This project showcases how technology can reshape financial management by:
 <img src="assets/JeffreyWooFinance4.png" alt="JeffreyWooFinance4" width="1200" height="800" />
 <img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
 <img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
+
+## 👤 About the Author
+Jeffrey Woo — Finance Manager | Strategic FP&A, AI Automation & Cost Optimization | MBA | FCCA | CTA | FTIHK | SAP Financial Accounting (FI) Certified Application Associate | Xero Advisor Certified
+
+📧 Email: jeffreywoocf@gmail.com  
+💼 LinkedIn: https://www.linkedin.com/in/wcfjeffrey/  
+🐙 GitHub: https://github.com/wcfjeffrey/
