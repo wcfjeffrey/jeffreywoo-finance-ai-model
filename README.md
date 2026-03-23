@@ -10,7 +10,7 @@
 ![Node.js](https://img.shields.io/badge/Node.js-6DA55F?logo=node.js&logoColor=white)
 ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-886FBF?logo=googlegemini&logoColor=fff)
 
-Not your typical financial strategic decision assistant app!
+> **Not your typical financial strategic decision assistant app!**
 
 **JeffreyWooFinance** is an AI-powered financial strategic decision assistant designed to help businesses and professionals make smarter, faster, and more confident financial choices.
 
