@@ -79,7 +79,7 @@ This app leverages accounting and finance principles to automate analysis of cor
 <img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
 
 ## ⚖️ Disclaimer
-**JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal expert's advice.
+**JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal advice.
 
 AI‑generated predictions, analyses, and recommendations are based on historical data and machine learning models. They are not guarantees of future performance and may contain errors or omissions.
 
