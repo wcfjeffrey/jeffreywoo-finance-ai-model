@@ -79,7 +79,13 @@ This app leverages accounting and finance principles to automate analysis of cor
 <img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
 
 ## ⚖️ Disclaimer
-**JeffreyWooFinance** provides AI-driven insights for informational purposes only. It does not replace professional financial expert's advice.
+**JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal expert's advice.
+
+AI‑generated predictions, analyses, and recommendations are based on historical data and machine learning models. They are not guarantees of future performance and may contain errors or omissions.
+
+Always consult a qualified financial professional before making any investment or business decisions. The developer assumes no liability for any losses or damages arising from the use of this app.
+
+Use at your own risk.
 
 ## 👤 About the Author
 Jeffrey Woo — Finance Manager | Strategic FP&A, AI Automation & Cost Optimization | MBA | FCCA | CTA | FTIHK | SAP Financial Accounting (FI) Certified Application Associate | Xero Advisor Certified
