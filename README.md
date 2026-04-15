@@ -87,6 +87,17 @@ Always consult a qualified financial professional before making any investment o
 
 Use at your own risk.
 
+## 📄 License
+
+**GNU Affero General Public License v3.0 (AGPL‑3.0)** — JeffreyWooFinance 
+
+- ✅ You are free to use, modify, and distribute this software, provided that any derivative works are also licensed under AGPL‑3.0.
+- ✅ If you run or deploy this software over a network (e.g., as a web service), you must make the source code of your modified version available to all users who interact with it.
+- ✅ This ensures transparency, collaboration, and continued open‑source availability of improvements.
+- ❌ The software is provided “as is”, without warranties of any kind.
+
+For full details, see the [LICENSE](./LICENSE) file.
+
 ## 👤 About the Author
 Jeffrey Woo — Finance Manager | Strategic FP&A, AI Automation & Cost Optimization | MBA | FCCA | CTA | FTIHK | SAP Financial Accounting (FI) Certified Application Associate | Xero Advisor Certified
 
