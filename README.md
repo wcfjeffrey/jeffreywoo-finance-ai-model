@@ -42,42 +42,6 @@ This app leverages accounting and finance principles to automate analysis of cor
 - **Cash Flow Statement Interpretation** — Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability.  
 - **Consolidation & Group Structures** — The app models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting.
 
-## ⭐ Finance Skills Strengthened
-- Full‑stack architecture for finance applications.  
-- Secure handling of financial data & environment variables.  
-- AI model integration into real‑world financial analysis workflows.  
-- Parsing & transforming ERP & structured datasets for insights.  
-- Interactive dashboards & state management in React (TypeScript + Vite).
-
-## 🤖 Tech Stack
-- **Language** — TypeScript, HTML  
-- **Framework** — React (with Vite as the build tool)  
-- **UI** — Standard React components, styled via TSX
-- **Runtime** — Node.js
-
-## 📦 Getting Started
-1. Connect your financial datasets by uploading your source file
-2. Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
-
-## ⚙️ Run Locally
-
-**Prerequisites:**  Node.js
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) file after you create .env.local file
-3. Run the app:
-   `npm run dev`
-
-## 📋 Sample
-
-<img src="assets/JeffreyWooFinance1.png" alt="JeffreyWooFinance1" width="1200" height="1500" />
-<img src="assets/JeffreyWooFinance2.png" alt="JeffreyWooFinance2" width="1200" height="800" />
-<img src="assets/JeffreyWooFinance3.png" alt="JeffreyWooFinance3" width="1200" height="800" />
-<img src="assets/JeffreyWooFinance4.png" alt="JeffreyWooFinance4" width="1200" height="800" />
-<img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
-<img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
-
 ## 📐Data Flow and Logic Sequence
 
 The following diagram illustrates how the system transforms raw financial data into strategic recommendations — from data input through ratio analysis, DuPont decomposition, AI-powered Gemini API insights, scenario simulation (DCF/NPV/IRR/CAPM/WACC), and finally the output dashboard — applying the financial theories described above at each stage.
@@ -134,6 +98,42 @@ flowchart TD
     C4 --> D1
     D5 --> E1
 ```
+
+## ⭐ Finance Skills Strengthened
+- Full‑stack architecture for finance applications.  
+- Secure handling of financial data & environment variables.  
+- AI model integration into real‑world financial analysis workflows.  
+- Parsing & transforming ERP & structured datasets for insights.  
+- Interactive dashboards & state management in React (TypeScript + Vite).
+
+## 🤖 Tech Stack
+- **Language** — TypeScript, HTML  
+- **Framework** — React (with Vite as the build tool)  
+- **UI** — Standard React components, styled via TSX
+- **Runtime** — Node.js
+
+## 📦 Getting Started
+1. Connect your financial datasets by uploading your source file
+2. Run **JeffreyWooFinance** to generate insights, simulations, and strategic recommendations tailored to your business
+
+## ⚙️ Run Locally
+
+**Prerequisites:**  Node.js
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) file after you create .env.local file
+3. Run the app:
+   `npm run dev`
+
+## 📋 Sample
+
+<img src="assets/JeffreyWooFinance1.png" alt="JeffreyWooFinance1" width="1200" height="1500" />
+<img src="assets/JeffreyWooFinance2.png" alt="JeffreyWooFinance2" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance3.png" alt="JeffreyWooFinance3" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance4.png" alt="JeffreyWooFinance4" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
+<img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
 
 ## ⚖️ Disclaimer
 **JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal advice.
