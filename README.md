@@ -78,6 +78,54 @@ This app leverages accounting and finance principles to automate analysis of cor
 <img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
 <img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
 
+## 📐Data Flow and Logic Sequence
+
+```mermaid
+flowchart TD
+    subgraph PHASE1["Phase 1: Data Input"]
+        direction TB
+        A1["Upload Financial Data"] --> A2["Balance Sheet"]
+        A1 --> A3["Income Statement"]
+        A1 --> A4["Cash Flow Statement"]
+        A1 --> A5["ERP Export / Structured Dataset"]
+    end
+
+    subgraph PHASE2["Phase 2: Financial Analysis"]
+        direction TB
+        B1["Ratio Analysis"] --> B2["EBITDA Margin / Net Profit Margin"]
+        B2 --> B3["DuPont Framework ROE Decomposition"]
+        B3 --> B4["Cash Flow Classification Operating/Investing/Financing"]
+        B4 --> B5["Variance and Sensitivity Analysis"]
+    end
+
+    subgraph PHASE3["Phase 3: AI Strategic Guidance"]
+        direction TB
+        C1["Gemini API Analysis"] --> C2["Generate Investment Recommendations"]
+        C2 --> C3["Budgeting Insights"]
+        C3 --> C4["Risk Management Strategies"]
+    end
+
+    subgraph PHASE4["Phase 4: Scenario Simulation"]
+        direction TB
+        D1["DCF / NPV / IRR Calculation"] --> D2["CAPM for Cost of Equity"]
+        D2 --> D3["WACC Estimation"]
+        D3 --> D4["What-If Scenario Modeling"]
+        D4 --> D5["Stochastic Stress Testing"]
+    end
+
+    subgraph PHASE5["Phase 5: Output Dashboard"]
+        direction TB
+        E1["Real-Time Cash Flow Forecast"] --> E2["ROI Analysis Dashboard"]
+        E2 --> E3["Scenario Comparison"]
+        E3 --> E4["Strategic Recommendations"]
+    end
+
+    A5 --> B1
+    B5 --> C1
+    C4 --> D1
+    D5 --> E1
+```
+
 ## ⚖️ Disclaimer
 **JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal advice.
 
