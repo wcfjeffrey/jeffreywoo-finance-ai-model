@@ -80,6 +80,15 @@ This app leverages accounting and finance principles to automate analysis of cor
 
 ## 📐Data Flow and Logic Sequence
 
+The following diagram illustrates how the system transforms raw financial data into strategic recommendations — from data input through ratio analysis, DuPont decomposition, AI-powered Gemini API insights, scenario simulation (DCF/NPV/IRR/CAPM/WACC), and finally the output dashboard — applying the financial theories described above at each stage.
+
+> **How to read this diagram:** The flow follows 5 phases:
+> 1. **Data Input** — Upload financial statements
+> 2. **Financial Analysis** — Ratios, DuPont, cash flow classification
+> 3. **AI Strategic Guidance** — Gemini API recommendations
+> 4. **Scenario Simulation** — DCF/NPV/IRR, CAPM, WACC, stress testing
+> 5. **Output Dashboard** — Forecasts, ROI analysis, recommendations
+
 ```mermaid
 flowchart TD
     subgraph PHASE1["Phase 1: Data Input"]
