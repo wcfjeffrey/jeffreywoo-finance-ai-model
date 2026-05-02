@@ -141,55 +141,54 @@ flowchart TD
 
 **Financial Statement Analysis & Ratio Analysis (Parses balance sheets, income statements, and cash flow statements; applies ratio analysis (EBITDA margin, net profit margin) to benchmark company performance)**
 
-- Wild, J. J., Subramanyam, K. R., & Halsey, R. F. (2021). Financial Statement Analysis (12th ed.). McGraw-Hill Education.
+- [Subramanyam, K. R. (2009). Financial Statement Analysis (11th ed.). McGraw-Hill Education.](https://digilib.stekom.ac.id/assets/dokumen/ebook/feb_df9f8cf5ea0e415255756a5140ce3269cdd020c6_1724921857.pdf)
 
 **DuPont Framework (Embedded into dashboards to decompose Return on Equity (ROE) into margin, turnover, and leverage, helping users identify drivers of shareholder value)**
 
-- DuPont Corporation. (1920). Return on Investment (ROI) Formula [Internal financial performance metric]. DuPont Powder Company.
-- Foulke, R. A. (1968). Practical Financial Statement Analysis (6th ed.). McGraw-Hill. (Original work published 1945)
+- [Foulke, R. A. (1968). Practical Financial Statement Analysis (6th ed.). McGraw-Hill. (Original work published 1945)](https://www.amazon.com/Practical-Financial-Statement-Analysism-6th/dp/007021655X)
 
 **Discounted Cash Flow (DCF), Net Present Value (NPV) & Internal Rate of Return (IRR) (Used in scenario simulations to evaluate investment projects and long-term corporate valuation, directly integrated into the app's forecasting module)**
 
-- Brealey, R. A., Myers, S. C., & Allen, F. (2023). Principles of Corporate Finance (14th ed.). McGraw-Hill Education. (Original work published 1981)
+- [Brealey, R. A., Myers, S. C., & Allen, F. (2023). Principles of Corporate Finance (14th ed.). McGraw-Hill Education. (Original work published 1981)](https://www.mheducation.com/highered/product/principles-of-corporate-finance-brealey.html?viewOption=student)
 
 **Capital Asset Pricing Model (CAPM) & Weighted Average Cost of Capital (WACC) (Applied to estimate cost of equity and WACC, supporting financing decisions within the app's risk-return analysis)**
 
-- Sharpe, W. F. (1964). Capital asset prices: A theory of market equilibrium under conditions of risk. The Journal of Finance, 19(3), 425–442.
-- Lintner, J. (1965). The valuation of risk assets and the selection of risky investments in stock portfolios and capital budgets. The Review of Economics and Statistics, 47(1), 13–37.
-- Modigliani, F., & Miller, M. H. (1958). The cost of capital, corporation finance and the theory of investment. The American Economic Review, 48(3), 261–297.
+- [Sharpe, W. F. (1964). Capital asset prices: A theory of market equilibrium under conditions of risk. The Journal of Finance, 19(3), 425–442.](https://www.sfu.ca/~kkasa/Sharpe_64.pdf)
+- [Lintner, J. (1965). The valuation of risk assets and the selection of risky investments in stock portfolios and capital budgets. The Review of Economics and Statistics, 47(1), 13–37.](https://www.aea.ru/data/pdf/lintner1965.pdf)
+- [Modigliani, F., & Miller, M. H. (1958). The Cost of Capital, Corporation Finance and the Theory of Investment. The American Economic Review, 48(3), 261–297.](https://www.jstor.org/stable/1809766)
 
 **Variance & Sensitivity Analysis (AI-driven stochastic simulations test resilience of financial outcomes under different market conditions, aligning with actuarial-style stress testing)**
 
-Saltelli, A., Ratto, M., Andres, T., Campolongo, F., Cariboni, J., Gatelli, D., Saisana, M., & Tarantola, S. (2008). Global Sensitivity Analysis: The Primer. John Wiley & Sons.
+- [Saltelli, A., Ratto, M., Andres, T., Campolongo, F., Cariboni, J., Gatelli, D., Saisana, M., & Tarantola, S. (2008). Global Sensitivity Analysis: The Primer. John Wiley & Sons.](https://www.andreasaltelli.eu/file/repository/A_Saltelli_Marco_Ratto_Terry_Andres_Francesca_Campolongo_Jessica_Cariboni_Debora_Gatelli_Michaela_Saisana_Stefano_Tarantola_Global_Sensitivity_Analysis_The_Primer_Wiley_Interscience_2008_.pdf)
 
 **Cash Flow Statement Interpretation (Automated classification of operating, investing, and financing cash flows to highlight liquidity risks and sustainability)**
 
-- Gow, I. D., Call, A. C., & Kothari, S. P. (2016). Cash flow analysis. In The Routledge Companion to Financial Accounting Theory. Routledge.
+- [Quinn, M., & Strauss, E. (Eds.). (2018). Cash flow analysis. In The Routledge Companion to Financial Accounting Theory. Routledge.](https://www.scribd.com/document/659682947/The-Routledge-Companion-to-Accounting-Information-Systems-Quinn-Martin-Strauss-Erik-Z-Library)
 
 **Consolidation & Group Structures (Models intercompany transactions and compliance with controlled foreign corporation (CFC) regimes, ensuring accurate group-level reporting)**
 
-- OECD. (2015). Designing Effective Controlled Foreign Company (CFC) Rules. OECD Publishing. https://www.oecd.org/tax/beps/designing-effective-controlled-foreign-company-rules-9789264241152-en.htm
+- [OECD. (2015). Designing Effective Controlled Foreign Company (CFC) Rules. OECD Publishing.](https://www.oecd.org/tax/beps/designing-effective-controlled-foreign-company-rules-9789264241152-en.htm)
 
 **2. Technology Stack**
 
 **Gemini API (Generates investment recommendations, budgeting insights, and risk management strategies)**
 
-Gemini Team, Google. (2024). Gemini API. https://deepmind.google/technologies/gemini/api/
+- [Gemini Team, Google. Gemini API.](https://ai.google.dev/gemini-api/docs)
 
 **React (with Vite) & TypeScript (Interactive dashboards for real-time cash flow forecasting, ROI analysis, scenario comparison, and strategic recommendations)**
 
-- Facebook Open Source. (2024). React: The Library for Web and Native User Interfaces. https://react.dev/
-- Biasi, B. (2024). Vite: Next Generation Frontend Tooling. https://vitejs.dev/
+- [Biasi, B. Vite: Next Generation Frontend Tooling.](https://vite.dev/)
+- [Facebook Open Source. React: The Library for Web and Native User Interfaces.](https://github.com/facebook/react)
 
 **Node.js (Backend runtime environment for the application)**
 
-- Node.js Foundation. (2024). Node.js® JavaScript Runtime. https://nodejs.org/
+- [Node.js Foundation. Node.js® JavaScript Runtime.](https://nodejs.org/)
 
 **3. Regulatory & Compliance Frameworks**
 
 **Controlled Foreign Company (CFC) Rules (Ensures accurate group-level reporting and compliance with international tax frameworks)**
 
-- Organisation for Economic Co-operation and Development (OECD). (2015). Base Erosion and Profit Shifting (BEPS) Action 3: Designing Effective Controlled Foreign Company (CFC) Rules. OECD Publishing. https://www.oecd.org/tax/beps/beps-action-3-designing-effective-controlled-foreign-company-rules.pdf
+- [Organisation for Economic Co-operation and Development (OECD). (2015). Base Erosion and Profit Shifting (BEPS) Action 3: Designing Effective Controlled Foreign Company (CFC) Rules. OECD Publishing.](https://www.oecd.org/tax/beps/beps-action-3-designing-effective-controlled-foreign-company-rules.pdf)
 
 ## ⚖️ Disclaimer
 **JeffreyWooFinance** provides AI-driven insights for informational, educational, and demonstration purposes only. It does not constitute professional financial, investment, or legal advice.
