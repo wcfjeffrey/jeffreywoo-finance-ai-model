@@ -135,7 +135,7 @@ flowchart TD
 <img src="assets/JeffreyWooFinance5.png" alt="JeffreyWooFinance5" width="1200" height="800" />
 <img src="assets/JeffreyWooFinance6.png" alt="JeffreyWooFinance6" width="1200" height="800" />
 
-## References
+## 📚 References
 
 **1. Financial Theories & Models**
 
